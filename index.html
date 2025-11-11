@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>体育场地预约系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        neutral: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card {
+                @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300;
+            }
+            .card-hover {
+                @apply hover:shadow-md transition-shadow duration-300;
+            }
+            .btn {
+                @apply py-2 px-4 rounded-lg font-medium transition-all duration-300;
+            }
+            .btn-primary {
+                @apply bg-primary text-white hover:bg-primary/90 active:bg-primary/80 shadow-sm hover:shadow;
+            }
+            .btn-danger {
+                @apply bg-danger text-white hover:bg-danger/90 text-sm py-1.5 px-3;
+            }
+            .form-input {
+                @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all;
+            }
+            .select-option {
+                @apply border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5;
+            }
+            .select-option.selected {
+                @apply border-primary bg-primary/10 shadow-md ring-1 ring-primary/30;
+            }
+            .facility-number {
+                @apply w-14 h-14 flex items-center justify-center rounded-lg transition-all border-2 font-medium;
+            }
+            .facility-number.available {
+                @apply border-primary/30 hover:border-primary bg-white cursor-pointer card-hover;
+            }
+            .facility-number.available.selected {
+                @apply border-primary bg-primary/15 shadow-md ring-1 ring-primary/30 scale-105;
+            }
+            .facility-number.unavailable {
+                @apply border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed;
+            }
+            .section-title {
+                @apply text-xl font-bold text-gray-800 mb-5 pb-2 border-b border-gray-100;
+            }
+            .badge {
+                @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-gray-800 min-h-screen">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <i class="fa fa-futbol-o text-primary text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-primary">体育场地预约系统</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="myReservationsBtn" class="flex items-center gap-1.5 text-gray-600 hover:text-primary transition-colors duration-300">
+                    <i class="fa fa-calendar-check-o"></i>
+                    <span>我的预约</span>
+                </button>
+                <button id="adminEntryBtn" class="flex items-center gap-1.5 text-gray-600 hover:text-primary transition-colors duration-300">
+                    <i class="fa fa-cog"></i>
+                    <span>管理员入口</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 预约表单区域 -->
+        <section id="reservationForm" class="card p-6 md:p-8 mb-8">
+            <h2 class="section-title flex items-center gap-2">
+                <i class="fa fa-book text-primary"></i>场地预约
+            </h2>
+            
+            <form id="bookingForm" class="space-y-6">
+                <!-- 场地类型选择 -->
+                <div>
+                    <label class="block text-gray-700 font-medium mb-3">场地类型 <span class="text-danger">*</span></label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                        <div class="select-option text-center card-hover" data-type="badminton">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fa fa-badminton text-primary text-xl"></i>
+                            </div>
+                            <p>羽毛球场</p>
+                            <p class="text-xs text-gray-500 mt-1">共6个</p>
+                        </div>
+                        <div class="select-option text-center card-hover" data-type="volleyball">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fa fa-volleyball-ball text-primary text-xl"></i>
+                            </div>
+                            <p>排球场</p>
+                            <p class="text-xs text-gray-500 mt-1">共6个</p>
+                        </div>
+                        <div class="select-option text-center card-hover" data-type="tableTennis">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fa fa-table-tennis text-primary text-xl"></i>
+                            </div>
+                            <p>乒乓球场</p>
+                            <p class="text-xs text-gray-500 mt-1">共20个</p>
+                        </div>
+                        <div class="select-option text-center card-hover" data-type="basketball">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fa fa-basketball-ball text-primary text-xl"></i>
+                            </div>
+                            <p>篮球场</p>
+                            <p class="text-xs text-gray-500 mt-1">共6个</p>
+                        </div>
+                        <div class="select-option text-center card-hover" data-type="football">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fa fa-futbol text-primary text-xl"></i>
+                            </div>
+                            <p>足球场</p>
+                            <p class="text-xs text-gray-500 mt-1">共1个</p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="facilityType" required>
+                </div>
+                
+                <!-- 日期选择 -->
+                <div>
+                    <label class="block text-gray-700 font-medium mb-3">预约日期 <span class="text-danger">*</span></label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="dateSelector"></div>
+                    <input type="hidden" id="reservationDate" required>
+                </div>
+                
+                <!-- 时间段选择 -->
+                <div>
+                    <label class="block text-gray-700 font-medium mb-3">时间段 <span class="text-danger">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="timeSlotSelector"></div>
+                    <input type="hidden" id="timeSlotId" required>
+                </div>
+                
+                <!-- 场地号选择 -->
+                <div id="facilityNumberContainer" class="hidden">
+                    <label class="block text-gray-700 font-medium mb-3">场地号 <span class="text-danger">*</span></label>
+                    <div class="flex flex-wrap gap-3" id="facilityNumberSelector"></div>
+                    <input type="hidden" id="facilityNumber" required>
+                </div>
+                
+                <!-- 联系人信息 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="contactName">联系人姓名 <span class="text-danger">*</span></label>
+                        <input type="text" id="contactName" class="form-input" required placeholder="请输入您的姓名">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="contactPhone">联系电话 <span class="text-danger">*</span></label>
+                        <input type="tel" id="contactPhone" class="form-input" required placeholder="请输入您的手机号">
+                    </div>
+                </div>
+                
+                <!-- 提交按钮 -->
+                <div class="text-center pt-2">
+                    <button type="submit" id="submitReservation" class="btn btn-primary px-8 py-2.5 text-base">
+                        <i class="fa fa-check-circle mr-2"></i>确认预约
+                    </button>
+                </div>
+            </form>
+        </section>
+        
+        <!-- 我的预约区域 -->
+        <section id="myReservations" class="card p-6 md:p-8 hidden">
+            <div class="flex flex-wrap justify-between items-center mb-6">
+                <h2 class="section-title flex items-center gap-2">
+                    <i class="fa fa-list-alt text-primary"></i>我的预约
+                </h2>
+                <button id="backToForm" class="text-primary hover:text-primary/80 transition-colors duration-300 flex items-center gap-1 mt-2 sm:mt-0">
+                    <i class="fa fa-arrow-left"></i>返回预约
+                </button>
+            </div>
+            
+            <div class="mb-5">
+                <input type="tel" id="checkReservationPhone" placeholder="请输入预约时的手机号查询"
+                       class="form-input">
+                <button id="checkReservationsBtn" class="btn btn-primary mt-3 w-full sm:w-auto">
+                    <i class="fa fa-search mr-2"></i>查询预约
+                </button>
+            </div>
+            
+            <div id="reservationsList" class="mt-6 space-y-4">
+                <!-- 预约记录动态生成 -->
+            </div>
+        </section>
+
+        <!-- 管理员后台页面 -->
+        <section id="adminDashboard" class="card p-6 md:p-8 hidden">
+            <div class="flex flex-wrap justify-between items-center mb-6">
+                <h2 class="section-title flex items-center gap-2">
+                    <i class="fa fa-tachometer text-primary"></i>管理员后台
+                </h2>
+                <button id="logoutAdminBtn" class="text-danger hover:text-danger/80 transition-colors duration-300 flex items-center gap-1">
+                    <i class="fa fa-sign-out"></i>退出登录
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- 数据统计卡片 -->
+                <div class="bg-primary/5 rounded-xl p-5 border border-primary/10">
+                    <p class="text-gray-500 text-sm mb-1">总预约数</p>
+                    <p class="text-2xl font-bold text-primary" id="totalReservations">0</p>
+                </div>
+                <div class="bg-success/5 rounded-xl p-5 border border-success/10">
+                    <p class="text-gray-500 text-sm mb-1">今日预约</p>
+                    <p class="text-2xl font-bold text-success" id="todayReservations">0</p>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                    <p class="text-gray-500 text-sm mb-1">场地总数</p>
+                    <p class="text-2xl font-bold text-blue-600" id="totalFacilities">0</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-bold mb-4">所有预约记录</h3>
+                <div id="allReservationsList" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    <!-- 所有预约记录将动态加载 -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- 弹窗 -->
+        <div id="successModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform translate-y-4 transition-transform duration-300">
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+                        <i class="fa fa-check text-success text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800">操作成功！</h3>
+                    <p class="text-gray-600 mb-5" id="successMessage"></p>
+                    <button id="closeSuccessModal" class="btn btn-primary w-full">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="errorModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform translate-y-4 transition-transform duration-300">
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-danger/20 flex items-center justify-center">
+                        <i class="fa fa-times text-danger text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800">操作失败</h3>
+                    <p class="text-gray-600 mb-5" id="errorMessage"></p>
+                    <button id="closeErrorModal" class="btn btn-primary w-full">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理员登录弹窗 -->
+        <div id="adminLoginModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform translate-y-4 transition-transform duration-300">
+                <div class="text-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">管理员登录</h3>
+                </div>
+                <form id="adminLoginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">用户名</label>
+                        <input type="text" id="adminUsername" class="form-input" required placeholder="请输入管理员用户名">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">密码</label>
+                        <input type="password" id="adminPassword" class="form-input" required placeholder="请输入管理员密码">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">登录</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="fa fa-futbol-o text-white text-xl"></i>
+                    </div>
+                    <p class="font-medium">体育场地预约系统</p>
+                </div>
+                <div class="text-center md:text-right text-sm">
+                    <p>© 2023 体育中心 版权所有</p>
+                    <p class="text-gray-400 mt-1">服务热线：400-123-4567</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 模拟API实现
+        const ApiMock = {
+            // 初始化数据
+            init() {
+                const data = {
+                    facilities: [
+                        { type: 'badminton', count: 6, name: '羽毛球场' },
+                        { type: 'volleyball', count: 6, name: '排球场' },
+                        { type: 'tableTennis', count: 20, name: '乒乓球场' },
+                        { type: 'basketball', count: 6, name: '篮球场' },
+                        { type: 'football', count: 1, name: '足球场' }
+                    ],
+                    timeSlots: [
+                        { id: 't1', name: '8:00~10:00' },
+                        { id: 't2', name: '10:00~12:00' },
+                        { id: 't3', name: '14:00~16:00' },
+                        { id: 't4', name: '16:00~18:00' },
+                        { id: 't5', name: '19:30~21:30' }
+                    ],
+                    reservations: []
+                };
+                if (!localStorage.getItem('venueData')) {
+                    localStorage.setItem('venueData', JSON.stringify(data));
+                }
+            },
+
+            // 获取场地类型
+            getFacilities() {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    resolve(data.facilities || []);
+                });
+            },
+
+            // 获取时间段
+            getTimeSlots() {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    resolve(data.timeSlots || []);
+                });
+            },
+
+            // 获取可预约日期（未来7天）
+            getAvailableDates() {
+                return new Promise(resolve => {
+                    const dates = [];
+                    const today = new Date();
+                    for (let i = 1; i <= 7; i++) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() + i);
+                        dates.push(date.toISOString().split('T')[0]);
+                    }
+                    resolve(dates);
+                });
+            },
+
+            // 获取指定日期和类型的已预约场地号
+            getReservedNumbers({ date, type, timeSlotId }) {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    const reservedNumbers = data.reservations
+                        .filter(r => r.type === type && r.date === date && r.timeSlotId === timeSlotId)
+                        .map(r => r.facilityNumber);
+                    resolve(reservedNumbers);
+                });
+            },
+
+            // 提交预约
+            reserve(params) {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    const { name, phone, type, date, timeSlotId, facilityNumber } = params;
+
+                    if (!name || !phone || !type || !date || !timeSlotId || !facilityNumber) {
+                        return resolve({ error: '请填写完整信息' });
+                    }
+
+                    const isReserved = data.reservations.some(r => 
+                        r.type === type && r.date === date && 
+                        r.timeSlotId === timeSlotId && r.facilityNumber === facilityNumber
+                    );
+                    if (isReserved) {
+                        return resolve({ error: '该场地已被预约' });
+                    }
+
+                    const timeSlot = data.timeSlots.find(s => s.id === timeSlotId);
+                    const reservation = {
+                        id: Date.now().toString(),
+                        name,
+                        phone,
+                        type,
+                        date,
+                        timeSlotId,
+                        timeSlotName: timeSlot ? timeSlot.name : '',
+                        facilityNumber,
+                        createdAt: new Date().toLocaleString()
+                    };
+
+                    data.reservations.push(reservation);
+                    localStorage.setItem('venueData', JSON.stringify(data));
+                    resolve({ success: true, reservation });
+                });
+            },
+
+            // 查询预约
+            getReservations({ phone }) {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    if (!phone) {
+                        return resolve({ error: '请输入手机号' });
+                    }
+                    const userReservations = data.reservations
+                        .filter(r => r.phone === phone)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date));
+                    resolve(userReservations);
+                });
+            },
+
+            // 取消预约（用户）
+            cancelReservation({ id, phone }) {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    const index = data.reservations.findIndex(r => r.id === id && r.phone === phone);
+                    if (index === -1) {
+                        return resolve({ error: '预约记录不存在' });
+                    }
+                    data.reservations.splice(index, 1);
+                    localStorage.setItem('venueData', JSON.stringify(data));
+                    resolve({ success: true });
+                });
+            },
+
+            // 删除预约（管理员）
+            adminDeleteReservation({ id }) {
+                return new Promise(resolve => {
+                    const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+                    const index = data.reservations.findIndex(r => r.id === id);
+                    if (index === -1) {
+                        return resolve({ error: '预约记录不存在' });
+                    }
+                    data.reservations.splice(index, 1);
+                    localStorage.setItem('venueData', JSON.stringify(data));
+                    resolve({ success: true });
+                });
+            }
+        };
+
+        // 初始化API数据
+        ApiMock.init();
+
+        // 全局变量
+        let selectedFacilityType = null;
+        let selectedDate = null;
+        let selectedTimeSlotId = null;
+        let facilitiesData = [];
+        let timeSlotsData = [];
+        let isAdminLoggedIn = false;
+        // 管理员账号密码设置
+        const ADMIN_CREDENTIALS = { username: 'chaojiadmin', password: 'ZLY123' };
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initEventListeners();
+            initAdminEvents();
+            loadFacilities();
+            loadTimeSlots();
+            loadAvailableDates();
+        });
+        
+        // 初始化普通用户事件监听
+        function initEventListeners() {
+            // 场地类型选择
+            document.querySelectorAll('.select-option[data-type]').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.select-option[data-type]').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    option.classList.add('selected');
+                    selectedFacilityType = option.getAttribute('data-type');
+                    document.getElementById('facilityType').value = selectedFacilityType;
+                    if (selectedDate && selectedTimeSlotId) loadAvailableFacilityNumbers();
+                });
+            });
+            
+            // 表单提交
+            document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await submitReservation();
+            });
+            
+            // 切换到我的预约
+            document.getElementById('myReservationsBtn').addEventListener('click', () => {
+                document.getElementById('reservationForm').classList.add('hidden');
+                document.getElementById('myReservations').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // 返回预约表单
+            document.getElementById('backToForm').addEventListener('click', () => {
+                document.getElementById('myReservations').classList.add('hidden');
+                document.getElementById('reservationForm').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // 查询预约
+            document.getElementById('checkReservationsBtn').addEventListener('click', loadUserReservations);
+            
+            // 关闭弹窗
+            document.getElementById('closeSuccessModal').addEventListener('click', hideSuccessModal);
+            document.getElementById('closeErrorModal').addEventListener('click', hideErrorModal);
+
+            // 点击弹窗外部关闭
+            document.getElementById('successModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('successModal')) hideSuccessModal();
+            });
+            document.getElementById('errorModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('errorModal')) hideErrorModal();
+            });
+        }
+
+        // 初始化管理员相关事件
+        function initAdminEvents() {
+            // 打开管理员登录弹窗
+            document.getElementById('adminEntryBtn').addEventListener('click', () => {
+                const modal = document.getElementById('adminLoginModal');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.add('opacity-100');
+                    modal.querySelector('div').classList.remove('translate-y-4');
+                }, 10);
+            });
+
+            // 关闭管理员登录弹窗
+            document.getElementById('adminLoginModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('adminLoginModal')) {
+                    hideAdminLoginModal();
+                }
+            });
+
+            // 管理员登录表单提交
+            document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('adminUsername').value;
+                const password = document.getElementById('adminPassword').value;
+
+                if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                    isAdminLoggedIn = true;
+                    hideAdminLoginModal();
+                    showAdminDashboard();
+                } else {
+                    showError('用户名或密码错误');
+                }
+            });
+
+            // 管理员退出登录
+            document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+                isAdminLoggedIn = false;
+                document.getElementById('adminDashboard').classList.add('hidden');
+                document.getElementById('reservationForm').classList.remove('hidden');
+            });
+        }
+        
+        // 加载场地类型
+        async function loadFacilities() {
+            try {
+                facilitiesData = await ApiMock.getFacilities();
+            } catch (error) {
+                showError('加载场地类型失败');
+            }
+        }
+        
+        // 加载时间段
+        async function loadTimeSlots() {
+            try {
+                timeSlotsData = await ApiMock.getTimeSlots();
+                renderTimeSlots();
+            } catch (error) {
+                showError('加载时间段失败');
+            }
+        }
+        
+        // 渲染时间段选择器
+        function renderTimeSlots() {
+            const container = document.getElementById('timeSlotSelector');
+            container.innerHTML = '';
+            timeSlotsData.forEach(slot => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'select-option card-hover flex items-center justify-between';
+                slotElement.setAttribute('data-id', slot.id);
+                slotElement.innerHTML = `
+                    <span>${slot.name}</span>
+                    <i class="fa fa-clock-o text-gray-400"></i>
+                `;
+                slotElement.addEventListener('click', () => {
+                    document.querySelectorAll('#timeSlotSelector > div').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    slotElement.classList.add('selected');
+                    selectedTimeSlotId = slot.id;
+                    document.getElementById('timeSlotId').value = selectedTimeSlotId;
+                    if (selectedFacilityType && selectedDate) loadAvailableFacilityNumbers();
+                });
+                container.appendChild(slotElement);
+            });
+        }
+        
+        // 加载可预约日期
+        async function loadAvailableDates() {
+            try {
+                const dates = await ApiMock.getAvailableDates();
+                const container = document.getElementById('dateSelector');
+                container.innerHTML = '';
+                dates.forEach(date => {
+                    const dateObj = new Date(date);
+                    const weekDay = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateObj.getDay()];
+                    const month = dateObj.getMonth() + 1;
+                    const day = dateObj.getDate();
+                    const dateElement = document.createElement('div');
+                    dateElement.className = 'select-option card-hover text-center';
+                    dateElement.setAttribute('data-date', date);
+                    dateElement.innerHTML = `
+                        <p class="text-sm">${month}月</p>
+                        <p class="font-bold">${day}</p>
+                        <p class="text-xs text-gray-500">${weekDay}</p>
+                    `;
+                    dateElement.addEventListener('click', () => {
+                        document.querySelectorAll('#dateSelector > div').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        dateElement.classList.add('selected');
+                        selectedDate = date;
+                        document.getElementById('reservationDate').value = selectedDate;
+                        if (selectedFacilityType && selectedTimeSlotId) loadAvailableFacilityNumbers();
+                    });
+                    container.appendChild(dateElement);
+                });
+            } catch (error) {
+                showError('加载日期失败');
+            }
+        }
+        
+        // 加载可用场地号
+        async function loadAvailableFacilityNumbers() {
+            try {
+                const reservedNumbers = await ApiMock.getReservedNumbers({
+                    date: selectedDate,
+                    type: selectedFacilityType,
+                    timeSlotId: selectedTimeSlotId
+                });
+                
+                document.getElementById('facilityNumberContainer').classList.remove('hidden');
+                const container = document.getElementById('facilityNumberSelector');
+                container.innerHTML = '';
+                
+                const facility = facilitiesData.find(f => f.type === selectedFacilityType);
+                if (!facility) return;
+                
+                for (let i = 1; i <= facility.count; i++) {
+                    const isAvailable = !reservedNumbers.includes(i);
+                    
+                    const numberElement = document.createElement('div');
+                    numberElement.className = isAvailable 
+                        ? 'facility-number available' 
+                        : 'facility-number unavailable';
+                    
+                    numberElement.setAttribute('data-number', i);
+                    numberElement.innerHTML = `
+                        <span>${i}号场</span>
+                        ${!isAvailable ? '<i class="fa fa-lock ml-1 text-xs"></i>' : ''}
+                    `;
+                    
+                    if (isAvailable) {
+                        numberElement.addEventListener('click', () => {
+                            document.querySelectorAll('.facility-number.available').forEach(el => {
+                                el.classList.remove('selected');
+                            });
+                            numberElement.classList.add('selected');
+                            document.getElementById('facilityNumber').value = i;
+                        });
+                    }
+                    
+                    container.appendChild(numberElement);
+                }
+            } catch (error) {
+                showError('加载场地号失败');
+            }
+        }
+        
+        // 提交预约
+        async function submitReservation() {
+            const name = document.getElementById('contactName').value;
+            const phone = document.getElementById('contactPhone').value;
+            const facilityNumber = document.getElementById('facilityNumber').value;
+            
+            if (!selectedFacilityType || !selectedDate || !selectedTimeSlotId || !facilityNumber) {
+                showError('请完成所有选项');
+                return;
+            }
+            
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showError('请输入有效的手机号');
+                return;
+            }
+            
+            try {
+                document.getElementById('submitReservation').disabled = true;
+                document.getElementById('submitReservation').innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>提交中...';
+                
+                const result = await ApiMock.reserve({
+                    name, phone, type: selectedFacilityType,
+                    date: selectedDate, timeSlotId: selectedTimeSlotId,
+                    facilityNumber: parseInt(facilityNumber)
+                });
+                
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
+                
+                const facility = facilitiesData.find(f => f.type === selectedFacilityType);
+                const timeSlot = timeSlotsData.find(s => s.id === selectedTimeSlotId);
+                const dateObj = new Date(selectedDate);
+                document.getElementById('successMessage').innerHTML = `
+                    <p><span class="font-medium">场地：</span>${facility.name} ${facilityNumber}号场</p>
+                    <p><span class="font-medium">日期：</span>${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日</p>
+                    <p><span class="font-medium">时间：</span>${timeSlot.name}</p>
+                    <p><span class="font-medium">预约号：</span>${result.reservation.id}</p>
+                `;
+                showSuccessModal();
+                
+                document.getElementById('bookingForm').reset();
+                resetSelections();
+            } catch (error) {
+                showError('预约失败，请重试');
+            } finally {
+                document.getElementById('submitReservation').disabled = false;
+                document.getElementById('submitReservation').innerHTML = '<i class="fa fa-check-circle mr-2"></i>确认预约';
+            }
+        }
+        
+        // 重置选择状态
+        function resetSelections() {
+            selectedFacilityType = null;
+            selectedDate = null;
+            selectedTimeSlotId = null;
+            document.querySelectorAll('.select-option, .facility-number').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById('facilityNumberContainer').classList.add('hidden');
+        }
+        
+        // 加载用户预约记录
+        async function loadUserReservations() {
+            const phone = document.getElementById('checkReservationPhone').value;
+            if (!phone) {
+                showError('请输入手机号');
+                return;
+            }
+            
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showError('请输入有效的手机号');
+                return;
+            }
+            
+            try {
+                const reservations = await ApiMock.getReservations({ phone });
+                const container = document.getElementById('reservationsList');
+                container.innerHTML = '';
+                
+                if (reservations.error) {
+                    showError(reservations.error);
+                    return;
+                }
+                
+                if (reservations.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-neutral rounded-lg p-8 text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                <i class="fa fa-calendar-o text-gray-400 text-2xl"></i>
+                            </div>
+                            <p class="text-gray-500">没有找到您的预约记录</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                reservations.forEach(reservation => {
+                    const facility = facilitiesData.find(f => f.type === reservation.type) || { name: reservation.type };
+                    const dateObj = new Date(reservation.date);
+                    const isPast = new Date(reservation.date) < new Date().setHours(0, 0, 0, 0);
+                    const isToday = dateObj.toDateString() === new Date().toDateString();
+                    
+                    const el = document.createElement('div');
+                    el.className = 'border rounded-lg p-4 card-hover';
+                    el.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-gray-800">${facility.name} ${reservation.facilityNumber}号场</h4>
+                            <span class="badge ${
+                                isPast ? 'bg-gray-100 text-gray-800' : 
+                                isToday ? 'bg-blue-100 text-blue-800' : 
+                                'bg-green-100 text-green-600'
+                            }">
+                                ${isPast ? '已过期' : isToday ? '今日可用' : '未使用'}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-sm text-gray-600 mb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-calendar text-primary w-4"></i>
+                                <span>${dateObj.toLocaleDateString()}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-clock-o text-primary w-4"></i>
+                                <span>${reservation.timeSlotName}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-user text-primary w-4"></i>
+                                <span>联系人：${reservation.name}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-mobile text-primary w-4"></i>
+                                <span>${reservation.phone}</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 pt-2 border-t border-gray-100 flex flex-wrap justify-between gap-2">
+                            <span>预约号：${reservation.id}</span>
+                            <span>预约时间：${reservation.createdAt}</span>
+                        </div>
+                        ${!isPast ? `<button class="cancel-reservation btn-danger mt-3" data-id="${reservation.id}" data-phone="${phone}">
+                            <i class="fa fa-trash-o mr-1"></i>取消预约
+                        </button>` : ''}
+                    `;
+                    container.appendChild(el);
+                });
+                
+                document.querySelectorAll('.cancel-reservation').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if (confirm('确定取消预约吗？')) {
+                            const id = e.target.closest('.cancel-reservation').dataset.id;
+                            const phone = e.target.closest('.cancel-reservation').dataset.phone;
+                            await cancelReservation(id, phone);
+                        }
+                    });
+                });
+            } catch (error) {
+                showError('查询失败，请重试');
+            }
+        }
+        
+        // 取消预约（用户）
+        async function cancelReservation(id, phone) {
+            try {
+                const result = await ApiMock.cancelReservation({ id, phone });
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
+                showSuccess(`
+                    <p>预约已成功取消</p>
+                    <p class="text-sm text-gray-500 mt-1">如有疑问，请联系客服</p>
+                `);
+                loadUserReservations();
+            } catch (error) {
+                showError('取消失败，请重试');
+            }
+        }
+
+        // 管理员删除预约记录
+        async function adminDeleteReservation(id) {
+            try {
+                const result = await ApiMock.adminDeleteReservation({ id });
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
+                showSuccess(`
+                    <p>预约记录已成功删除</p>
+                `);
+                loadAllReservations(); // 重新加载预约列表
+                loadAdminStatistics(); // 更新统计数据
+            } catch (error) {
+                showError('删除失败，请重试');
+            }
+        }
+
+        // 隐藏管理员登录弹窗
+        function hideAdminLoginModal() {
+            const modal = document.getElementById('adminLoginModal');
+            modal.classList.remove('opacity-100');
+            modal.querySelector('div').classList.add('translate-y-4');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('adminLoginForm').reset();
+            }, 300);
+        }
+
+        // 显示管理员后台并加载数据
+        function showAdminDashboard() {
+            document.getElementById('reservationForm').classList.add('hidden');
+            document.getElementById('myReservations').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            loadAdminStatistics();
+            loadAllReservations();
+        }
+
+        // 加载后台统计数据
+        function loadAdminStatistics() {
+            const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 总预约数
+            document.getElementById('totalReservations').textContent = data.reservations.length;
+            
+            // 今日预约数
+            const todayCount = data.reservations.filter(r => r.date === today).length;
+            document.getElementById('todayReservations').textContent = todayCount;
+            
+            // 场地总数
+            const totalFacilities = data.facilities.reduce((sum, f) => sum + f.count, 0);
+            document.getElementById('totalFacilities').textContent = totalFacilities;
+        }
+
+        // 加载所有预约记录（供管理员查看和删除）
+        function loadAllReservations() {
+            const data = JSON.parse(localStorage.getItem('venueData') || '{}');
+            const container = document.getElementById('allReservationsList');
+            container.innerHTML = '';
+            
+            if (data.reservations.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">暂无预约记录</p>';
+                return;
+            }
+            
+            const sortedReservations = [...data.reservations].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            sortedReservations.forEach(reservation => {
+                const facility = facilitiesData.find(f => f.type === reservation.type) || { name: reservation.type };
+                const el = document.createElement('div');
+                el.className = 'border rounded-lg p-4 card-hover';
+                el.innerHTML = `
+                  <div class="flex justify-between">
+                    <h4 class="font-medium">${facility.name} ${reservation.facilityNumber}号场</h4>
+                    <span class="text-sm text-gray-500">${reservation.id}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
+                    <div>日期：${reservation.date}</div>
+                    <div>时间：${reservation.timeSlotName}</div>
+                    <div>联系人：${reservation.name}</div>
+                    <div>电话：${reservation.phone}</div>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-2">预约时间：${reservation.createdAt}</div>
+                  <button class="admin-delete-btn btn-danger mt-3" data-id="${reservation.id}">
+                    <i class="fa fa-trash-o mr-1"></i>删除记录
+                  </button>
+                `;
+                container.appendChild(el);
+            });
+            
+            // 绑定管理员删除按钮事件
+            document.querySelectorAll('.admin-delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if (confirm('确定要删除这条预约记录吗？此操作不可恢复！')) {
+                        const id = e.target.closest('.admin-delete-btn').dataset.id;
+                        await adminDeleteReservation(id);
+                    }
+                });
+            });
+        }
+        
+        // 弹窗控制
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                modal.querySelector('div').classList.remove('translate-y-4');
+            }, 10);
+        }
+        
+        function hideSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.remove('opacity-100');
+            modal.querySelector('div').classList.add('translate-y-4');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        function showError(message) {
+            const modal = document.getElementById('errorModal');
+            document.getElementById('errorMessage').textContent = message;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                modal.querySelector('div').classList.remove('translate-y-4');
+            }, 10);
+        }
+        
+        function hideErrorModal() {
+            const modal = document.getElementById('errorModal');
+            modal.classList.remove('opacity-100');
+            modal.querySelector('div').classList.add('translate-y-4');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('successMessage').innerHTML = message;
+            showSuccessModal();
+        }
+    </script>
+</body>
+</html>
